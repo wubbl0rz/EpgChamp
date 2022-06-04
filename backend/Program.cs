@@ -27,6 +27,9 @@ if (app.Environment.IsDevelopment())
 
 app.MapGet("/epg", ([FromServices]EpgUpdaterService epg) => epg.CurrentEpg);
 
+app.MapGet("/imagecache/{id}", async ([FromServices] TvhApi api, int id)
+  => Results.File(await api.GetChannelIcon(id), "image/png"));
+
 app.Run();
 
 public class Channel

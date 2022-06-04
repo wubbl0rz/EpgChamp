@@ -13,25 +13,24 @@ public class EpgUpdaterService : BackgroundService
     _settings = settings;
     _tvhApi = tvhApi;
   }
-  
-  protected override Task ExecuteAsync(CancellationToken stoppingToken)
+
+  protected override async Task ExecuteAsync(CancellationToken stoppingToken)
   {
-    return Task.Run(async () =>
+    while (!stoppingToken.IsCancellationRequested)
     {
-      while (!stoppingToken.IsCancellationRequested)
-      {
-        this.CurrentEpg = await FetchEpg();
-        await Task.Delay(30000, stoppingToken);
-      }
-    }, stoppingToken);
+      this.CurrentEpg = await FetchEpg();
+      await Task.Delay(30000, stoppingToken);
+    }
   }
 
   private async Task<IReadOnlyList<Channel>> FetchEpg()
   {
     var result = new List<Channel>();
-    
+
     var tvhChannels = await _tvhApi.GetChannels();
-    
+
+    tvhChannels = tvhChannels.OrderBy(c => c.Number);
+
     foreach (var tvhChannel in tvhChannels)
     {
       var tvhChannelEpg = await _tvhApi.GetEpgForChannel(tvhChannel.Uuid);

@@ -59,6 +59,20 @@ public class TvhApi
     return json.Entries;
   }
   
+  public async Task<byte[]> GetChannelIcon(int id)
+  {
+    try
+    {
+      return await _baseUrl.RemovePathSegment()
+        .AppendPathSegments("imagecache", id)
+        .GetBytesAsync();
+    }
+    catch (Exception e)
+    {
+      return File.ReadAllBytes("Default.png");
+    }
+  }
+  
   public async Task<IEnumerable<TvhChannel>> GetChannels()
   {
     var json = await _baseUrl
