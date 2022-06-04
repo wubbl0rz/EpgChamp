@@ -1,0 +1,5 @@
+build/
+wwwroot/
+obj/
+.idea
+bin/

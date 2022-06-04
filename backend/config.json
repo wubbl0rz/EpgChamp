@@ -1,0 +1,8 @@
+{
+  "AppSettings": {
+    "EpgNumberOfDays": 7,
+    "TvhUser": "<user>",
+    "TvhPass": "<pass>",
+    "TvhUrl": "http://<ip>:<port>"
+  }
+}
