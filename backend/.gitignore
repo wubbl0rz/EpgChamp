@@ -3,3 +3,4 @@ wwwroot/
 obj/
 .idea
 bin/
+config.json
