@@ -49,6 +49,7 @@ public class EpgEvent
   public string Description { get; set; } = "";
   public string Title { get; set; } = "";
   public bool IsScheduled { get; set; }
+  public string Genre { get; set; } = "";
 }
 
 public class AppSettings

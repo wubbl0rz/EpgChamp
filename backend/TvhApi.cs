@@ -129,8 +129,8 @@ public class TvhEpgEventResponse
 
 public record TvhEpgGenre
 {
-  [JsonProperty("key")] public ulong Id { get; set; }
-  [JsonProperty("val")] public string? Name { get; set; }
+  [JsonProperty("key")] public int Id { get; set; }
+  [JsonProperty("val")] public string Name { get; set; } = null!;
 }
 
 public record TvhChannel
@@ -152,6 +152,7 @@ public record TvhEpgEvent
   public string ChannelIcon { get; set; } = null!;
   public long Start { get; set; }
   public long Stop { get; set; }
+  public int[] Genre { get; set; } = Array.Empty<int>();
   public string Title { get; set; } = null!;
   public string Subtitle { get; set; } = null!;
   public string Description { get; set; } = null!;

@@ -34,7 +34,9 @@ public class EpgUpdaterService : BackgroundService
     foreach (var tvhChannel in tvhChannels)
     {
       var tvhChannelEpg = await _tvhApi.GetEpgForChannel(tvhChannel.Uuid);
-    
+
+      var genres = await _tvhApi.GetEpgGenres();
+      
       var channel = new Channel()
       {
         Name = tvhChannel.Name,
@@ -44,12 +46,13 @@ public class EpgUpdaterService : BackgroundService
         EpgEntries = tvhChannelEpg.Select(e => new EpgEvent()
         {
           Description = e.Description,
-          Start = DateTimeOffset.FromUnixTimeSeconds(e.Start).DateTime,
-          Stop = DateTimeOffset.FromUnixTimeSeconds(e.Stop).DateTime,
+          Start = DateTimeOffset.FromUnixTimeSeconds(e.Start).LocalDateTime,
+          Stop = DateTimeOffset.FromUnixTimeSeconds(e.Stop).LocalDateTime,
           Title =e.Title,
           EventId = e.EventId,
           IsScheduled = e.DvrState == TvhDvrState.Scheduled,
-        }).ToArray()
+          Genre = genres.FirstOrDefault(g => g.Id == e.Genre.FirstOrDefault(0)).Name
+        }).Where(e => e.Start < DateTime.Now.AddDays(7)).ToArray()
       };
       
       result.Add(channel);
