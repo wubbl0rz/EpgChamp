@@ -11,12 +11,17 @@
     let res = await fetch("http://localhost:4500/epg");
     let json = await res.json();
 
+    var set = new Set();
+
     json.forEach((channel) => {
       channel.epgEntries.forEach((epgEntry) => {
         epgEntry.start = new Date(epgEntry.start);
         epgEntry.stop = new Date(epgEntry.stop);
+        set.add(epgEntry.genre);
       });
     });
+
+    console.log(set);
 
     epg = json;
   }
@@ -37,8 +42,47 @@
   function getBackground(epgEntry) {
     var now = new Date();
 
+    let genre = epgEntry.genre.toLowerCase();
+
+    //todo: aktuelles dunkler
     if (epgEntry.start < now && now < epgEntry.stop) {
       return "bg-gray-300";
+    } else if (genre.includes("news") || genre.includes("social")) {
+      return "bg-blue-200";
+    } else if (
+      genre.includes("drama") ||
+      genre.includes("detective") ||
+      genre.includes("science") ||
+      genre.includes("film")
+    ) {
+      return "bg-red-200";
+    } else if (
+      genre.includes("education") ||
+      genre.includes("docu") ||
+      genre.includes("nature")
+    ) {
+      return "bg-emerald-200";
+    } else if (genre.includes("sports") || genre.includes("soccer")) {
+      return "bg-pink-200";
+    } else if (
+      genre.includes("show") ||
+      genre.includes("rock") ||
+      genre.includes("arts") ||
+      genre.includes("music")
+    ) {
+      return "bg-fuchsia-200";
+    } else if (genre.includes("cooking")) {
+      return "bg-violet-200";
+    } else if (genre.includes("news")) {
+      return "bg-blue-200";
+    } else if (genre.includes("news")) {
+      return "bg-blue-200";
+    } else if (genre.includes("news")) {
+      return "bg-blue-200";
+    } else if (genre.includes("news")) {
+      return "bg-blue-200";
+    } else if (genre.includes("news")) {
+      return "bg-blue-200";
     } else {
       return "bg-gray-200";
     }
