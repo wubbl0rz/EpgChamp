@@ -3,6 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 builder.Services.AddCors();
 builder.Configuration.AddJsonFile("config.json");
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
@@ -22,6 +26,8 @@ app.UseFileServer();
 
 if (app.Environment.IsDevelopment())
 {
+  app.UseSwagger();
+  app.UseSwaggerUI();
   app.UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 }
 
