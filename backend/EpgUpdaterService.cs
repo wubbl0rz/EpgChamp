@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Globalization;
 using Microsoft.Extensions.Options;
+using Spectre.Console;
 
 namespace backend;
 
@@ -9,18 +11,28 @@ public class EpgUpdaterService : BackgroundService
   private readonly TvhApi _tvhApi;
   public IReadOnlyList<Channel> CurrentEpg { get; set; } = Array.Empty<Channel>();
 
+  private ManualResetEventSlim _resetEvent = new();
+
   public EpgUpdaterService(IOptions<AppSettings> settings, TvhApi tvhApi)
   {
     _settings = settings;
     _tvhApi = tvhApi;
   }
 
+  public void TriggerRefresh()
+  {
+    // refresh 1 channel only ?
+    _resetEvent.Set();
+  }
+
   protected override async Task ExecuteAsync(CancellationToken stoppingToken)
   {
     while (!stoppingToken.IsCancellationRequested)
     {
+      _resetEvent.Reset();
       await FetchEpg();
-      await Task.Delay(30000, stoppingToken);
+      AnsiConsole.MarkupLine("[blue]EPG REFRESH[/]");
+      _resetEvent.Wait(30000, stoppingToken);
     }
   }
 
@@ -53,6 +65,7 @@ public class EpgUpdaterService : BackgroundService
           StopString = stop.ToString("t", new CultureInfo("de-DE")),
           Title = e.Title,
           EventId = e.EventId,
+          DvrUuid = e.DvrUuid,
           IsScheduled = e.DvrState == TvhDvrState.Scheduled,
           Genre = genre
         };

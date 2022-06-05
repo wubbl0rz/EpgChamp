@@ -30,6 +30,30 @@ app.MapGet("/epg", ([FromServices]EpgUpdaterService epg) => epg.CurrentEpg);
 app.MapGet("/imagecache/{id}", async ([FromServices] TvhApi api, int id)
   => Results.File(await api.GetChannelIcon(id), "image/png"));
 
+app.MapGet("/record/{id}", async ([FromServices] TvhApi api, 
+  [FromServices]EpgUpdaterService epg, ulong id) =>
+{
+  await api.RecordEpgEvent(id);
+
+  var res = await api.RefreshEpgEvent(id);
+  
+  epg.TriggerRefresh();
+
+  return res.DvrState == TvhDvrState.Scheduled;
+});
+
+app.MapDelete("/record/{id}", async ([FromServices] TvhApi api, 
+  [FromServices]EpgUpdaterService epg, ulong id) =>
+{
+  await api.DeleteTimerEpgEvent(id);
+  
+  var res = await api.RefreshEpgEvent(id);
+  
+  epg.TriggerRefresh();
+
+  return res.DvrState != TvhDvrState.Scheduled;
+});
+
 app.Run();
 
 public class Channel
@@ -51,6 +75,7 @@ public class EpgEvent
   public string Description { get; set; } = "";
   public string Title { get; set; } = "";
   public bool IsScheduled { get; set; }
+  public string? DvrUuid { get; set; }
   public string Genre { get; set; } = "";
 }
 

@@ -82,7 +82,7 @@ public class TvhApi
     return json.Entries;
   }
   
-  public async Task<string?> RecordEpgEvent(ulong epgEventId)
+  public async Task<string[]?> RecordEpgEvent(ulong epgEventId)
   {
     var json = await _baseUrl.AppendPathSegment("/dvr/config/grid")
       .GetJsonAsync<TvhDvrConfigResponse>();
@@ -96,11 +96,20 @@ public class TvhApi
 
     return res.Uuid;
   }
+  
+  public async Task DeleteTimerEpgEvent(ulong epgEventId)
+  {
+    var epgEvent = await this.RefreshEpgEvent(epgEventId);
+
+    var res = await _baseUrl.AppendPathSegment("/dvr/entry/cancel")
+      .SetQueryParam("uuid", epgEvent.DvrUuid)
+      .GetAsync();
+  }
 }
 
 public class TvhDvrCreateResponse
 {
-  public string? Uuid { get; set; }
+  public string[]? Uuid { get; set; }
 }
 
 public class TvhDvrConfigResponse
