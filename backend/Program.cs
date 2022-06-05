@@ -38,7 +38,7 @@ public class Channel
   public string Name { get; set; } = "";
   public int Number { get; set; }
   public string IconUrl { get; set; } = "";
-  public EpgEvent[] EpgEntries { get; set; } = Array.Empty<EpgEvent>();
+  public IEnumerable<EpgEvent> EpgEntries { get; set; } = Array.Empty<EpgEvent>();
 }
 
 public class EpgEvent
@@ -46,6 +46,8 @@ public class EpgEvent
   public long EventId { get; set; }
   public DateTime Start { get; set; }
   public DateTime Stop { get; set; }
+  public string StartString { get; set; } = "";
+  public string StopString { get; set; } = ""; 
   public string Description { get; set; } = "";
   public string Title { get; set; } = "";
   public bool IsScheduled { get; set; }

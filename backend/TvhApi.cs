@@ -67,7 +67,7 @@ public class TvhApi
         .AppendPathSegments("imagecache", id)
         .GetBytesAsync();
     }
-    catch (Exception e)
+    catch (Exception)
     {
       return File.ReadAllBytes("Default.png");
     }
@@ -152,6 +152,7 @@ public record TvhEpgEvent
   public string ChannelIcon { get; set; } = null!;
   public long Start { get; set; }
   public long Stop { get; set; }
+  public long NextEventId { get; set; }
   public int[] Genre { get; set; } = Array.Empty<int>();
   public string Title { get; set; } = null!;
   public string Subtitle { get; set; } = null!;
