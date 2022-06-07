@@ -18,7 +18,7 @@ public class TvhApi
     });
   }
 
-  public async Task<IEnumerable<TvhEpgEvent>> GetFullEpg()
+  public async Task<IEnumerable<TvhEpgEntry>> GetFullEpg()
   {
     var json = await _baseUrl
       .AppendPathSegment("/epg/events/grid")
@@ -27,18 +27,8 @@ public class TvhApi
 
     return json.Entries;
   }
-  
-  public async Task<TvhEpgEvent> RefreshEpgEvent(ulong epgEventId)
-  {
-    var json = await _baseUrl.AppendPathSegment("epg/events/load")
-      .SetQueryParam("eventId", epgEventId)
-      .GetAsync()
-      .ReceiveJson<TvhEpgEventResponse>();
 
-    return json.Entries.First();
-  }
-  
-  public async Task<IEnumerable<TvhEpgEvent>> GetEpgForChannel(string channelUuid)
+  public async Task<IEnumerable<TvhEpgEntry>> GetEpgForChannel(string channelUuid)
   {
     var json = await _baseUrl
       .AppendPathSegment("/epg/events/grid")
@@ -82,7 +72,7 @@ public class TvhApi
     return json.Entries;
   }
   
-  public async Task<string[]?> RecordEpgEvent(ulong epgEventId)
+  public async Task<string[]?> AddTimerForEpgEvent(long epgEventId)
   {
     var json = await _baseUrl.AppendPathSegment("/dvr/config/grid")
       .GetJsonAsync<TvhDvrConfigResponse>();
@@ -97,10 +87,15 @@ public class TvhApi
     return res.Uuid;
   }
   
-  public async Task DeleteTimerEpgEvent(ulong epgEventId)
+  public async Task DeleteTimerForEpgEvent(long epgEventId)
   {
-    var epgEvent = await this.RefreshEpgEvent(epgEventId);
-
+    var json = await _baseUrl.AppendPathSegment("epg/events/load")
+      .SetQueryParam("eventId", epgEventId)
+      .GetAsync()
+      .ReceiveJson<TvhEpgEventResponse>();
+    
+    var epgEvent = json.Entries.First();
+    
     var res = await _baseUrl.AppendPathSegment("/dvr/entry/cancel")
       .SetQueryParam("uuid", epgEvent.DvrUuid)
       .GetAsync();
@@ -133,7 +128,7 @@ public class TvhEpgGenreResponse
 public class TvhEpgEventResponse
 {
   public ulong TotalCount { get; set; }
-  public IEnumerable<TvhEpgEvent> Entries { get; set; } = null!;
+  public IEnumerable<TvhEpgEntry> Entries { get; set; } = null!;
 }
 
 public record TvhEpgGenre
@@ -152,7 +147,7 @@ public record TvhChannel
   [JsonProperty("icon_public_url")] public string IconPublicUrl { get; set; } = null!;
 }
 
-public record TvhEpgEvent
+public record TvhEpgEntry
 {
   public long EventId { get; set; }
   public string ChannelName { get; set; } = null!;

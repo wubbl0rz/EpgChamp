@@ -1,8 +1,0 @@
-{
-  "AppSettings": {
-    "EpgNumberOfDays": 7,
-    "TvhUser": "ms",
-    "TvhPass": "123456",
-    "TvhUrl": "http://192.168.2.129:9981"
-  }
-}
