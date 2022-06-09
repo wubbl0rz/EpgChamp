@@ -3,6 +3,8 @@
   import { add, sub, format } from "date-fns";
   import de from "date-fns/locale/de";
   import { fade, fly } from "svelte/transition";
+  import EpgEventDetailModal from "../lib/EpgEventDetailModal.svelte";
+  import Icon from "../lib/Icon.svelte";
 
   // import { dev } from "$app/env";
 
@@ -107,20 +109,15 @@
   startNow.setHours(0);
   startNow.setMinutes(0);
 
-  let selectedEpgEntry = null;
+  let modalData = null;
 
-  async function setTimer(epgEntry) {
-    if (epgEntry.isScheduled) {
-      let res = await fetch(url + "record/" + epgEntry.eventId, {
-        method: "DELETE",
-      });
-
-      if (await res.json()) selectedEpgEntry.isScheduled = false;
-    } else {
-      let res = await fetch(url + "record/" + epgEntry.eventId);
-
-      if (await res.json()) selectedEpgEntry.isScheduled = true;
-    }
+  function openModal(channel, epgEntry) {
+    console.log(1);
+    modalData = {
+      channel,
+      epgEntry,
+    };
+    console.log(modalData);
   }
 </script>
 
@@ -128,40 +125,10 @@
 
 <!-- MODAL POPUP -->
 
-<div
-  class:hidden={!selectedEpgEntry}
-  class="fixed z-50 inset-0 bg-gray-900 bg-opacity-50"
->
-  <div class="absolute inset-5 rounded border bg-gray-100 p-5 border-gray-900 ">
-    <div class="font-bold text-2xl">
-      {selectedEpgEntry?.title}
-      {#if selectedEpgEntry?.isScheduled}
-        🔴
-      {/if}
-    </div>
-    <div class="text-sm mb-2">
-      ({selectedEpgEntry?.startString}
-      -
-      {selectedEpgEntry?.stopString})
-    </div>
-    <div class="mt-5">
-      {selectedEpgEntry?.description ?? ""}
-    </div>
-    <div class="mt-10">
-      <button
-        on:click={() => setTimer(selectedEpgEntry)}
-        class="rounded bg-red-500 w-32 p-4 font-bold text-white"
-      >
-        {selectedEpgEntry?.isScheduled ? "Löschen" : "Aufnahme"}
-      </button>
-      <button
-        on:click={() => (selectedEpgEntry = null)}
-        class="rounded bg-blue-500 w-32 p-4 font-bold text-white"
-        >Schließen</button
-      >
-    </div>
-  </div>
-</div>
+<EpgEventDetailModal
+  channel={modalData?.channel}
+  epgEntry={modalData?.epgEntry}
+/>
 
 <div
   class:hidden={!loading}
@@ -237,20 +204,26 @@
       >
         {#each channel.epgEntries as epgEntry}
           <div
-            on:click={() => (selectedEpgEntry = epgEntry)}
+            on:click={() => openModal(channel, epgEntry)}
             style="min-width: 0px; width: {calcSecondsToPixel(
               epgEntry,
               scale
             )}px"
-            class="mb-1 cursor-pointer h-24 {getBackground(
+            class="mb-1 hover:opacity-90 cursor-pointer h-24 {getBackground(
               epgEntry
             )} overflow-hidden whitespace-nowrap"
           >
             <div class="text-gray-900 border-l-4 h-full p-2 border-gray-900">
-              <div class="font-bold text-xl">
-                {epgEntry.title}
+              <div class="font-bold text-xl flex items-center">
+                <div>
+                  {epgEntry.title}
+                </div>
                 {#if epgEntry.isScheduled}
-                  🔴
+                  <Icon
+                    class="text-red-600 ml-2 w-6 h-6"
+                    prefix="mdi"
+                    icon="record-circle"
+                  />
                 {/if}
               </div>
               <div class="text-lg">
