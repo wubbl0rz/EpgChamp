@@ -2,7 +2,6 @@
   import { tick } from "svelte";
   import { add, sub, format } from "date-fns";
   import de from "date-fns/locale/de";
-  import { fade, fly } from "svelte/transition";
   import EpgEventDetailModal from "../lib/EpgEventDetailModal.svelte";
   import Icon from "../lib/Icon.svelte";
 
@@ -32,9 +31,9 @@
 
     epg = json;
 
-    await tick();
-
     loading = false;
+
+    await tick();
 
     console.timeEnd();
   }
@@ -59,6 +58,10 @@
     // if (epgEntry.start < now && now < epgEntry.stop) {
     //   return "bg-gray-300";
     // }
+
+    if (!epgEntry.eventId) {
+      return "bg-gray-200 opacity-50 pointer-events-none";
+    }
 
     if (genre.includes("news") || genre.includes("social")) {
       return "bg-blue-200";
@@ -109,15 +112,13 @@
   startNow.setHours(0);
   startNow.setMinutes(0);
 
-  let modalData = null;
+  //let modalChannel = null;
+  let modalEpgEntry = null;
+  let modalChannel = null;
 
-  function openModal(channel, epgEntry) {
-    console.log(1);
-    modalData = {
-      channel,
-      epgEntry,
-    };
-    console.log(modalData);
+  function openDialog(epgEntry, channel, _) {
+    modalChannel = channel;
+    modalEpgEntry = epgEntry;
   }
 </script>
 
@@ -125,37 +126,16 @@
 
 <!-- MODAL POPUP -->
 
-<EpgEventDetailModal
-  channel={modalData?.channel}
-  epgEntry={modalData?.epgEntry}
-/>
+<EpgEventDetailModal channel={modalChannel} bind:epgEntry={modalEpgEntry} />
 
 <div
   class:hidden={!loading}
   class="fixed m-auto left-0 right-0 top-0 bottom-0 h-1 w-1"
 >
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    class="h-12 w-12 animate-spin"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    stroke-width="2"
-  >
-    <path
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-    />
-    <path
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-    />
-  </svg>
+  <Icon class="h-12 w-12 animate-spin" prefix="heroicons-outline" icon="cog" />
 </div>
 
-<div style="width: 60480px;" class="overflow-hidden">
+<div style="width: {7 * 8640}px" class="overflow-hidden">
   <div
     class="flex text-gray-900"
     style="margin-left: -{(new Date() - startNow) / 10000}px;"
@@ -184,18 +164,24 @@
 
 <div class="w-max bg-gray-900 select-none">
   <div
-    style="height: calc({epg.length} * 6.25rem - 8px);"
+    style="height: calc({epg.length} * 6.25rem);"
     class="absolute pointer-events-none top-12 left-0 z-20  border-r-2 border-orange-500"
   >
     <div class="w-96 h-full opacity-30 bg-gray-500" />
   </div>
 
-  {#each epg as channel}
+  {#each epg as channel, i}
     <div class="flex">
       <div
         style="min-width: 100px;"
         class="bg-gray-800 z-30 sticky left-0 p-2 w-24 h-24 flex justify-center items-center"
       >
+        <div
+          class="absolute bottom-2 left-2 text-xs text-center font-medium bg-gray-900 
+          rounded-full w-4 h-4 text-gray-400"
+        >
+          {i + 1}
+        </div>
         <img class="pointer-events-none" src="{url}{channel.iconUrl}" alt="" />
       </div>
       <div
@@ -204,7 +190,7 @@
       >
         {#each channel.epgEntries as epgEntry}
           <div
-            on:click={() => openModal(channel, epgEntry)}
+            on:click={() => openDialog(epgEntry, channel, modalEpgEntry)}
             style="min-width: 0px; width: {calcSecondsToPixel(
               epgEntry,
               scale
@@ -214,24 +200,28 @@
             )} overflow-hidden whitespace-nowrap"
           >
             <div class="text-gray-900 border-l-4 h-full p-2 border-gray-900">
-              <div class="font-bold text-xl flex items-center">
+              <div class="font-bold text-xl relative items-center">
                 <div>
+                  <!-- {modalEpgEntry == epgEntry && modalEpgEntry?.isScheduled} -->
                   {epgEntry.title}
                 </div>
+
                 {#if epgEntry.isScheduled}
                   <Icon
-                    class="text-red-600 ml-2 w-6 h-6"
+                    class="text-red-600 ml-2 w-6 h-6 absolute left-11 top-[29px]"
                     prefix="mdi"
                     icon="record-circle"
                   />
                 {/if}
               </div>
-              <div class="text-lg">
-                {epgEntry.startString}
-              </div>
-              <div class="text-lg">
-                {epgEntry.stopString}
-              </div>
+              {#if epgEntry.eventId}
+                <div class="text-lg font-medium">
+                  {epgEntry.startString}
+                </div>
+                <div class="text-lg font-medium">
+                  {epgEntry.stopString}
+                </div>
+              {/if}
             </div>
           </div>
         {/each}

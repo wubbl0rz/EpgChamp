@@ -7,17 +7,17 @@
 
   let url = import.meta.env.PROD ? "/" : "http://localhost:4500/";
 
-  async function setTimer(epgEntry) {
+  async function setTimer() {
     if (epgEntry.isScheduled) {
       let res = await fetch(url + "record/" + epgEntry.eventId, {
         method: "DELETE",
       });
 
-      selectedEpgEntry.isScheduled = false;
+      epgEntry.isScheduled = false;
     } else {
       let res = await fetch(url + "record/" + epgEntry.eventId);
 
-      selectedEpgEntry.isScheduled = true;
+      epgEntry.isScheduled = true;
     }
   }
 
@@ -31,11 +31,7 @@
 <svelte:window on:keydown={keydown} />
 
 {#if epgEntry}
-  <div
-    transition:fade
-    class:hidden={!epgEntry}
-    class="fixed z-50 inset-0 bg-gray-900 bg-opacity-50"
-  >
+  <div transition:fade class="fixed z-50 inset-0 bg-gray-900 bg-opacity-50">
     <div
       transition:fly={{ y: 50 }}
       class="absolute inset-5 rounded border bg-gray-900 p-5 border-gray-900 "
@@ -48,8 +44,15 @@
             alt=""
           />
         </div>
-        <div class="text-gray-100 font-bold text-2xl ml-4">
+        <div class="text-gray-100 font-bold text-2xl ml-4 flex items-center">
           {epgEntry.title}
+          {#if epgEntry.isScheduled}
+            <Icon
+              class="text-red-600 ml-2 w-6 h-6"
+              prefix="mdi"
+              icon="record-circle"
+            />
+          {/if}
         </div>
       </div>
       <div class="text-gray-100 mt-6 text-lg font-medium">
@@ -57,20 +60,28 @@
       </div>
 
       <div class="mt-5 flex gap-4 items-center">
-        <button class="bg-red-800 hover:opacity-90 p-2 text-gray-100 rounded">
+        <button
+          on:click={() => setTimer()}
+          class="bg-red-800 hover:opacity-90 font-medium p-2 text-gray-100 rounded"
+        >
           <div class="flex  justify-center items-center">
-            <Icon
-              class="w-8 h-8"
-              prefix="heroicons-outline"
-              icon="video-camera"
-            />
-            <div class="ml-2">Record</div>
+            {#if !epgEntry.isScheduled}
+              <Icon
+                class="w-8 h-8"
+                prefix="heroicons-outline"
+                icon="video-camera"
+              />
+              <div class="ml-2">Record</div>
+            {:else}
+              <Icon class="w-8 h-8" prefix="heroicons-outline" icon="trash" />
+              <div class="ml-2">Delete</div>
+            {/if}
           </div>
         </button>
 
         <button
           on:click={() => (epgEntry = null)}
-          class="bg-gray-800 hover:opacity-90 p-2 text-gray-100 rounded"
+          class="bg-gray-800 hover:opacity-90 p-2 font-medium text-gray-100 rounded"
         >
           <div class="flex justify-center items-center">
             <svg

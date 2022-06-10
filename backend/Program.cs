@@ -44,7 +44,6 @@ cli.Configure(config =>
 
     if (app.Environment.IsDevelopment())
     {
-      app.UseFileServer();
       app.UseSwagger();
       app.UseSwaggerUI();
       app.UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
@@ -52,11 +51,11 @@ cli.Configure(config =>
 
     app.UseFileServer(new FileServerOptions()
     {
-      FileProvider = manifestEmbeddedProvider
+      FileProvider = manifestEmbeddedProvider,
     });
 
-    app.MapGet("/epg", ([FromServices] EpgCache epgCache) => epgCache.Epg);
-
+    app.MapGet("/epg", ([FromServices] EpgCache epgCache) => epgCache.EpgWeek);
+    
     app.MapGet("/imagecache/{id}", async ([FromServices] TvhApi api, int id)
       => Results.File(await api.GetChannelIcon(id), "image/png"));
 
@@ -101,7 +100,7 @@ public class StartSettings : CommandSettings
   public string Url { get; init; } = "http://localhost:9981";
 }
 
-public class Channel
+public record Channel
 {
   public string Uuid { get; set; } = "";
   public string Name { get; set; } = "";
@@ -110,7 +109,7 @@ public class Channel
   public IEnumerable<EpgEntry> EpgEntries { get; set; } = Array.Empty<EpgEntry>();
 }
 
-public class EpgEntry
+public record EpgEntry
 {
   public long EventId { get; set; }
   public DateTime Start { get; set; }
